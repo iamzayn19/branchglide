@@ -1,0 +1,7 @@
+version: 1
+app:
+  command: ["ruby", "server.rb", "-b", "127.0.0.1", "-p", "{port}"]
+  health_path: /up
+preview:
+  mode: snapshot
+  provider: cloudflare

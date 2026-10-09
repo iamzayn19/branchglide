@@ -1,0 +1,8 @@
+{
+  "name": "branchglide-example-node",
+  "private": true,
+  "version": "0.0.0",
+  "scripts": {
+    "dev": "node server.js"
+  }
+}

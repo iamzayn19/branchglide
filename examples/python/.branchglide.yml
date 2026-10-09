@@ -1,0 +1,7 @@
+version: 1
+app:
+  command: ["python3", "app.py", "--port", "{port}"]
+  health_path: /up
+preview:
+  mode: snapshot
+  provider: cloudflare
