@@ -1,0 +1,33 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "branchglide"
+version = "0.1.0"
+description = "Preview any Git branch. Share it without deploying."
+readme = "README.md"
+license = { text = "Apache-2.0" }
+authors = [{ name = "Muhammad Zain Ul Abidin", email = "iamzayn19@gmail.com" }]
+requires-python = ">=3.8"
+classifiers = [
+  "Environment :: Console",
+  "Intended Audience :: Developers",
+  "License :: OSI Approved :: Apache Software License",
+  "Operating System :: OS Independent",
+  "Topic :: Software Development :: Testing",
+]
+
+[project.urls]
+Homepage = "https://github.com/iamzayn19/branchglide"
+Source = "https://github.com/iamzayn19/branchglide"
+Issues = "https://github.com/iamzayn19/branchglide/issues"
+
+[project.scripts]
+branchglide = "branchglide.launcher:main"
+
+[tool.setuptools.packages.find]
+include = ["branchglide*"]
+
+[tool.setuptools.package-data]
+branchglide = ["vendor/**/*"]
