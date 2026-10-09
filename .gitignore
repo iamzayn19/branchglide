@@ -1,0 +1,14 @@
+*.gem
+.bundle/
+vendor/bundle/
+pkg/
+.branchglide/
+*.log
+node_modules/
+__pycache__/
+*.pyc
+.venv/
+dist/
+build/
+*.egg-info/
+.DS_Store
