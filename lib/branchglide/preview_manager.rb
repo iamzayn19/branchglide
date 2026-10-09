@@ -1,5 +1,7 @@
 # frozen_string_literal: true
 
+require "time"
+
 module Branchglide
   # Orchestrates a single preview's lifecycle: worktree, allocated port,
   # supervised process, persisted state, logs.
