@@ -1,0 +1,100 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  ruby-tests:
+    name: Ruby tests (${{ matrix.os }}, ruby ${{ matrix.ruby }})
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest, windows-latest]
+        ruby: ["3.1", "3.2", "3.3"]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: ${{ matrix.ruby }}
+          bundler-cache: true
+      - run: bundle exec rake test
+
+  gem-build:
+    name: Gem build verification
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: "3.2"
+          bundler-cache: true
+      - run: gem build branchglide.gemspec
+      - run: gem install ./branchglide-*.gem
+      - run: branchglide --version
+
+  npm-install:
+    name: npm install (${{ matrix.os }})
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest, windows-latest]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: "3.2"
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+      - run: bash scripts/sync_vendor.sh
+        shell: bash
+      - run: node --test packages/npm/test/
+
+  pypi-install:
+    name: PyPI install (${{ matrix.os }})
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest, windows-latest]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: "3.2"
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - run: bash scripts/sync_vendor.sh
+        shell: bash
+      - run: pip install -e packages/python/ pytest
+      - run: python -m pytest packages/python/tests/ -q
+
+  version-consistency:
+    name: Version consistency across packages
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Compare gem/npm/PyPI versions
+        run: |
+          GEM_VERSION=$(ruby -e 'require "./lib/branchglide/version"; print Branchglide::VERSION')
+          NPM_VERSION=$(node -p "require('./packages/npm/package.json').version")
+          PY_VERSION=$(grep -m1 '^version' packages/python/pyproject.toml | cut -d'"' -f2)
+          echo "gem=$GEM_VERSION npm=$NPM_VERSION pypi=$PY_VERSION"
+          [ "$GEM_VERSION" = "$NPM_VERSION" ] && [ "$GEM_VERSION" = "$PY_VERSION" ]
+
+  security-audit:
+    name: Dependency and security checks
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: "3.2"
+          bundler-cache: true
+      - run: gem install bundler-audit
+      - run: bundle-audit check --update
