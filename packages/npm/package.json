@@ -1,0 +1,27 @@
+{
+  "name": "branchglide",
+  "version": "0.1.0",
+  "description": "Preview any Git branch. Share it without deploying.",
+  "homepage": "https://github.com/iamzayn19/branchglide",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/iamzayn19/branchglide.git"
+  },
+  "bugs": "https://github.com/iamzayn19/branchglide/issues",
+  "license": "Apache-2.0",
+  "author": "Muhammad Zain Ul Abidin",
+  "bin": {
+    "branchglide": "bin/branchglide.js"
+  },
+  "files": [
+    "bin/",
+    "vendor/",
+    "README.md"
+  ],
+  "engines": {
+    "node": ">=18"
+  },
+  "scripts": {
+    "test": "node --test test/"
+  }
+}

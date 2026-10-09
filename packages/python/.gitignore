@@ -1,0 +1,3 @@
+branchglide/vendor/
+dist/
+*.egg-info/
