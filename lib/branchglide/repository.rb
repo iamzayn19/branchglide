@@ -21,11 +21,11 @@ module Branchglide
     end
 
     def branch_exists?(branch)
-      run(["show-ref", "--verify", "--quiet", "refs/heads/#{branch}"], allow_failure: true).success?
+      ref_exists?("refs/heads/#{branch}")
     end
 
     def remote_branch_exists?(branch)
-      run(["show-ref", "--verify", "--quiet", "refs/remotes/origin/#{branch}"], allow_failure: true).success?
+      ref_exists?("refs/remotes/origin/#{branch}")
     end
 
     def resolve_commit(ref)
@@ -76,6 +76,11 @@ module Branchglide
     end
 
     private
+
+    def ref_exists?(ref)
+      result = run(["show-ref", "--verify", "--quiet", ref], allow_failure: true)
+      result.is_a?(Process::Status) ? false : true
+    end
 
     def run(args, allow_failure: false)
       self.class.run_in(@root, args, allow_failure: allow_failure)
