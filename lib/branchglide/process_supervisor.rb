@@ -30,11 +30,14 @@ module Branchglide
       pid = record["pid"]
       return unless alive?(pid, record["started_at"])
 
+      # Process.kill("TERM", ...) is not reliably delivered to a Ruby
+      # process on Windows; "KILL" is the dependable option there.
       if windows?
-        kill_quietly(signal, pid)
+        kill_quietly("KILL", pid)
       else
         kill_quietly(signal, -pid) || kill_quietly(signal, pid)
       end
+      wait_for_exit(pid)
       File.delete(pidfile_path) if File.exist?(pidfile_path)
     end
 
@@ -56,6 +59,11 @@ module Branchglide
       true
     rescue Errno::ESRCH, Errno::EPERM
       false
+    end
+
+    def wait_for_exit(pid, timeout: 5)
+      deadline = Time.now + timeout
+      sleep 0.05 while alive?(pid, nil) && Time.now < deadline
     end
 
     def write_pidfile(path, pid)
