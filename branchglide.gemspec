@@ -25,6 +25,4 @@ Gem::Specification.new do |spec|
   spec.bindir = "exe"
   spec.executables = ["branchglide"]
   spec.require_paths = ["lib"]
-
-  spec.add_dependency "psych", "~> 5.0"
 end

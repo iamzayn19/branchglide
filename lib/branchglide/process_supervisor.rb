@@ -10,8 +10,12 @@ module Branchglide
     end
 
     def start(command:, chdir:, env:, log_path:, pidfile_path:)
-      log = File.open(log_path, "a")
-      pid = Process.spawn(env, *command.map(&:to_s), chdir: chdir, out: log, err: log, pgroup: true)
+      spawn_opts = { chdir: chdir }
+      spawn_opts[:pgroup] = true unless windows?
+
+      pid = File.open(log_path, "a") do |log|
+        Process.spawn(env, *command.map(&:to_s), **spawn_opts, out: log, err: log)
+      end
       Process.detach(pid)
       write_pidfile(pidfile_path, pid)
       pid
@@ -26,14 +30,10 @@ module Branchglide
       pid = record["pid"]
       return unless alive?(pid, record["started_at"])
 
-      begin
-        Process.kill(signal, -pid)
-      rescue Errno::ESRCH, Errno::EPERM
-        begin
-          Process.kill(signal, pid)
-        rescue Errno::ESRCH, Errno::EPERM
-          nil
-        end
+      if windows?
+        kill_quietly(signal, pid)
+      else
+        kill_quietly(signal, -pid) || kill_quietly(signal, pid)
       end
       File.delete(pidfile_path) if File.exist?(pidfile_path)
     end
@@ -46,6 +46,17 @@ module Branchglide
     end
 
     private
+
+    def windows?
+      Gem.win_platform?
+    end
+
+    def kill_quietly(signal, pid)
+      Process.kill(signal, pid)
+      true
+    rescue Errno::ESRCH, Errno::EPERM
+      false
+    end
 
     def write_pidfile(path, pid)
       require "json"
