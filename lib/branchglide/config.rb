@@ -8,7 +8,7 @@ module Branchglide
   class Config
     FILE_NAME = ".branchglide.yml"
 
-    attr_reader :app_command, :health_path, :preview_mode, :provider, :env
+    attr_reader :app_command, :health_path, :preview_mode, :provider, :env, :copy_paths
 
     def self.load(repo_root)
       path = File.join(repo_root, FILE_NAME)
@@ -36,6 +36,7 @@ module Branchglide
       @preview_mode = data.dig("preview", "mode") || "snapshot"
       @provider = data.dig("preview", "provider") || "cloudflare"
       @env = data.dig("app", "env") || {}
+      @copy_paths = data.dig("app", "copy") || []
     end
 
     # Substitutes the {port} placeholder into the command array. Never touches
@@ -69,6 +70,12 @@ module Branchglide
       mode = data.dig("preview", "mode")
       if mode && !%w[snapshot live].include?(mode)
         raise InvalidConfigError, "preview.mode must be 'snapshot' or 'live'"
+      end
+
+      Array(data.dig("app", "copy")).each do |path|
+        if !path.is_a?(String) || path.start_with?("/") || path.split("/").include?("..")
+          raise InvalidConfigError, "app.copy entries must be relative paths with no .. segments (got #{path.inspect})"
+        end
       end
     end
   end

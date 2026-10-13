@@ -19,6 +19,7 @@ module Branchglide
       raise PreviewAlreadyExistsError, "preview for #{branch} is already running" if running?(branch)
 
       info = @worktrees.create(branch)
+      copy_untracked_files(info[:path])
       port = PortAllocator.new(reserved: allocated_ports).allocate
       log_path = log_path_for(branch)
       pidfile = pidfile_for(branch)
@@ -93,6 +94,22 @@ module Branchglide
     end
 
     private
+
+    # Copies untracked files (commonly .env*) that app.copy names from the
+    # main repo into a freshly-created worktree, which otherwise only
+    # contains git-tracked content. Never follows ".." segments (validated
+    # in Config) and silently skips a source that doesn't exist.
+    def copy_untracked_files(worktree_path)
+      require "fileutils"
+      @config.copy_paths.each do |relative_path|
+        src = File.join(@repository.root, relative_path)
+        next unless File.exist?(src)
+
+        dest = File.join(worktree_path, relative_path)
+        FileUtils.mkdir_p(File.dirname(dest))
+        FileUtils.cp_r(src, dest)
+      end
+    end
 
     def allocated_ports
       @state.previews.values.map { |p| p["port"] }
