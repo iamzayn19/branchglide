@@ -26,7 +26,7 @@ module Branchglide
       pid = @supervisor.start(
         command: @config.command_for_port(port),
         chdir: info[:path],
-        env: @config.env.transform_values(&:to_s),
+        env: @config.env_for_port(port),
         log_path: log_path,
         pidfile_path: pidfile
       )

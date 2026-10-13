@@ -23,6 +23,18 @@ module Branchglide
       end
     end
 
+    def test_env_for_port_always_sets_port_env_var
+      config = Config.new("version" => 1, "app" => { "command" => ["x"] })
+      assert_equal "4567", config.env_for_port(4567)["PORT"]
+    end
+
+    def test_env_for_port_substitutes_placeholder_in_explicit_env_values
+      config = Config.new("version" => 1, "app" => { "command" => ["x"], "env" => { "BASE_URL" => "http://localhost:{port}" } })
+      result = config.env_for_port(4567)
+      assert_equal "http://localhost:4567", result["BASE_URL"]
+      assert_equal "4567", result["PORT"]
+    end
+
     def test_default_yaml_round_trips
       config = Config.new(YAML.safe_load(Config.default_yaml))
       assert_equal "/up", config.health_path

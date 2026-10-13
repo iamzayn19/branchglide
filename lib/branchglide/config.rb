@@ -44,6 +44,16 @@ module Branchglide
       app_command.map { |arg| arg.to_s.gsub("{port}", port.to_s) }
     end
 
+    # Many frameworks (Puma, Rails, Next.js) read the listen port from the
+    # PORT environment variable rather than a CLI flag. We always set PORT
+    # so those work without requiring app.env.PORT in every config, while
+    # still letting an explicit app.env.PORT (with its own {port}
+    # substitution) override it.
+    def env_for_port(port)
+      substituted = env.transform_values { |v| v.to_s.gsub("{port}", port.to_s) }
+      { "PORT" => port.to_s }.merge(substituted)
+    end
+
     private
 
     def validate!(data)
